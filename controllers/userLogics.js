@@ -1,5 +1,5 @@
 const jwt =require('jsonwebtoken')
-
+const bcrypt = require("bcrypt");
 users=require('../models/schema')
 
 
@@ -7,35 +7,40 @@ users=require('../models/schema')
 exports.userRegister = async (req, res) => {
 
 
-    const { uname, email, psw} = req.body
+    const { uname, email, psw } = req.body
 
-    if (!uname || !email || !psw ) {
+    if (!uname || !email || !psw) {
 
         res.status(401).json("all inputs are required")
 
     }
+    await bcrypt.hash(psw, 10, async (err, hashedPassword) => {
+        try {
+            const preUser = await users.findOne({ email })
+            if (preUser) {
+              return res.status(409).send({ message: "User already exists" });
+            }
+            else {
+                const newUser = new users({
+                    uname, email, psw: hashedPassword
+                })
 
-    try {
+                await newUser.save()
 
-        const preUser = await users.findOne({email})
-        if (preUser) {
-            res.send({message:"User already Exists"})
+              // Respond with a status code of 201
+              res.status(200)
+              .header('Content-Type', 'application/json').json({
+                message:"Registration Successfull",newUser
+              })
+            }
+
+
+
+        } catch (error) {
+
+          res.status(500).send({ message: "Internal Server Error", error });
         }
-        else {
-            const newUser = new users({
-                uname, email, psw
-            })
-
-            await newUser.save()
-
-            res.status(200).send({message:"Registration Successfull"}).json(newUser)
-        }
-
-    }
-    catch (error) {
-        res.status(401).json(error)
-
-    }
+    });
 
 }
 
@@ -43,34 +48,39 @@ exports.userRegister = async (req, res) => {
 
 exports.userLogin = async (req, res) => {
 
-    const { email, psw} = req.body
-
-
-    if ( !email || !psw ) {
+    const { email, psw } = req.body
+    if (!email || !psw) {
 
         res.status(401).json("all inputs are required")
 
     }
 
     try {
-        const preUser = await users.findOne({email})
+        const preUser = await users.findOne({ email })
 
-        if (preUser) {
+        if (!preUser) {
 
-            //token generation
-            const token=jwt.sign(email,"secretkey123");
-           if(psw === preUser.psw){
-
-            res.send({message:"login Successfull",token})
-
-
-           }
-           else{
-            res.send({message:"Incorrect Password"})
-           }
+            res.send({ message: "User not found" });
         }
         else {
-            res.send({message:"User not found"}) 
+
+            //token generation
+            const token = jwt.sign(email, "secretkey123");
+
+            //comparing passwords
+            bcrypt.compare(psw, preUser.psw, async (err, result) => {
+
+                if (!result) {
+                     res.send({ message: "Incorrect Password" });
+                }
+
+                if (result) {
+
+                    return res.status(200).send({ message: "login Successfull"
+                    , token })
+
+                }
+            });
 
         }
 
@@ -79,5 +89,4 @@ exports.userLogin = async (req, res) => {
         res.status(401).json(error)
 
     }
-
 }
