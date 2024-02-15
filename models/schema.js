@@ -29,6 +29,4 @@ const users=mongoose.model('User',{
 
 })
 
-
-
-module.exports=users
+ module.exports=users

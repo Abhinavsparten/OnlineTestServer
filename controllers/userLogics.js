@@ -57,6 +57,7 @@ exports.userLogin = async (req, res) => {
 
     try {
         const preUser = await users.findOne({ email })
+        const id=preUser._id
 
         if (!preUser) {
 
@@ -77,7 +78,7 @@ exports.userLogin = async (req, res) => {
                 if (result) {
 
                     return res.status(200).send({ message: "login Successfull"
-                    , token })
+                    , token,id })
 
                 }
             });
