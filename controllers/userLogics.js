@@ -1,5 +1,6 @@
 const jwt =require('jsonwebtoken')
 const bcrypt = require("bcrypt");
+const nodemailer = require('nodemailer');
 users=require('../models/schema')
 
 
@@ -90,4 +91,81 @@ exports.userLogin = async (req, res) => {
         res.status(401).json(error)
 
     }
+}
+
+// for verify email
+exports.Emailverify = async (req, res) => {
+  const { email } = req.body
+
+  if ( !email ) {
+
+      res.status(401).json("all inputs are required")
+
+  }
+  try{
+      const preUser = await users.findOne({email})
+
+      if (!preUser) {
+          return res.send({message:"User not existed"})
+      }
+      const uid=preUser._id
+
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: process.env['USER'],
+              pass: process.env['PASSWORD']
+            }
+          });
+
+          var mailOptions = {
+            from: 'OnlineTestapp.in <demo@g.com>',
+            to: email,
+            subject: 'Verify your email',
+            text: `${process.env['FRONTEND_URL']}/updatepass/${uid}`
+          };
+
+          transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+              console.log(error);
+            } else {
+            return res.send({message:"Click the link on your mail for reset password"})
+            }
+          });
+
+    }catch (error) {
+        res.status(402).json(error)
+
+    }
+
+}
+
+// for Update password
+exports.updatePassword = async (req, res) => {
+    const { psw,id } = req.body
+    if ( !psw ) {
+
+        res.status(401).json("all inputs are required")
+
+    }
+  await bcrypt.hash(psw, 10, async (err, hashedPassword) => {
+    try{
+        const preUser = await users.findOne({ _id:id })
+
+        if (!preUser) {
+            return res.send({message:"User not existed"})
+        }else{
+            preUser.psw=hashedPassword
+            await preUser.save()
+
+        res.status(200).json({message:"Password updated"})
+
+        }
+
+
+    }catch (error) {
+        res.status(500).json(error)
+
+    }
+});
 }

@@ -1,10 +1,8 @@
 const express=require('express')
 const { marksAdd,getMarksAll} = require('../controllers/markLogics')
-const { userRegister, userLogin } = require('../controllers/userLogics')
+const { userRegister, userLogin,Emailverify,updatePassword } = require('../controllers/userLogics')
 //create an object for router class in object
 const router=new express.Router()
-
-
 
 //route for register
 router.post('/api/v1/register',userRegister)
@@ -17,5 +15,11 @@ router.post("/api/v1/add-marks", marksAdd);
 
 //route for get all marks
 router.get("/api/v1/get-marks/:uid", getMarksAll);
+
+//route for verify email
+router.post('/api/v1/verifymail',Emailverify)
+
+//route for updatepass
+router.post('/api/v1/updatepass',updatePassword)
 
 module.exports=router
