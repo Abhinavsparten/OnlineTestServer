@@ -1,25 +1,27 @@
-const express=require('express')
-const { marksAdd,getMarksAll} = require('../controllers/markLogics')
-const { userRegister, userLogin,Emailverify,updatePassword } = require('../controllers/userLogics')
-//create an object for router class in object
-const router=new express.Router()
+const express = require('express');
+const { marksAdd, getMarksAll } = require('../controllers/markLogics');
+const { userRegister, userLogin, emailVerify, updatePassword } = require('../controllers/userLogics');
+const { decodeToken } = require('../middleware/auth');
 
-//route for register
-router.post('/api/v1/register',userRegister)
+// Create an instance of the Router class
+const router = express.Router();
 
-//roote for login
-router.post('/api/v1/login',userLogin)
+// Route for user registration
+router.post('/api/v1/register', userRegister);
 
-//roote for login
-router.post("/api/v1/add-marks", marksAdd);
+// Route for user login
+router.post('/api/v1/login', userLogin);
 
-//route for get all marks
-router.get("/api/v1/get-marks/:uid", getMarksAll);
+// Route for adding marks
+router.post('/api/v1/add-marks',decodeToken, marksAdd);
 
-//route for verify email
-router.post('/api/v1/verifymail',Emailverify)
+// Route for getting all marks
+router.get('/api/v1/get-marks/:uid',decodeToken, getMarksAll);
 
-//route for updatepass
-router.post('/api/v1/updatepass',updatePassword)
+// Route for email verification
+router.post('/api/v1/verifymail', emailVerify);
 
-module.exports=router
+// Route for updating password
+router.post('/api/v1/updatepass', updatePassword);
+
+module.exports = router;

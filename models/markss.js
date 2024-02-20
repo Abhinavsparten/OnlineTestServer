@@ -1,28 +1,28 @@
 const mongoose = require('mongoose');
 
-const marks = mongoose.model('Mark', {
-    subject: {
-        type: String,
-        requierd: true,
-    },
-
-        correctAnswersCount: {
-        type: Number,
-        requierd: true,
-    },
-      questions: {
-       type: Number,
-       requierd: true,
-    },
-
-      date: {
-        type: Date,
-        requierd: true
-    },
-      uid: {
-        type: String,
-        requierd: true
-    }
+const markSchema = new mongoose.Schema({
+  subject: {
+    type: String,
+    required: true,
+  },
+  correctAnswersCount: {
+    type: Number,
+    required: true,
+  },
+  questions: {
+    type: Number,
+    required: true,
+  },
+  date: {
+    type: Date,
+    required: true,
+  },
+  uid: {
+    type: String,
+    required: true,
+  },
 });
 
- module.exports=marks
+const Mark = mongoose.model('Mark', markSchema);
+
+module.exports = Mark;
