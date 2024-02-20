@@ -1,32 +1,30 @@
+const mongoose = require('mongoose');
+const validator = require('validator');
 
-const mongoose=require('mongoose')
-const validator=require('validator')
-
-const users=mongoose.model('User',{
-    uname:{
-        type:String,
-        requierd:true,
-        trim:true
-    },
-
-    email:{
-        type:String,
-        requierd:true,
-        trim:true,
-        validator(value){
-            if(validator.isEmail(value)){
-                throw Error("invalid Email")
-            }
+const UserSchema = new mongoose.Schema({
+  uname: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  email: {
+    type: String,
+    required: true,
+    trim: true,
+    validate: {
+      validator: value => {
+        if (!validator.isEmail(value)) {
+          throw new Error('Invalid Email');
         }
-    },
-
-    psw:{
-        type:String,
-        requierd:true
-
+      }
     }
+  },
+  psw: {
+    type: String,
+    required: true
+  }
+});
 
+const User = mongoose.model('User', UserSchema);
 
-})
-
- module.exports=users
+module.exports = User;

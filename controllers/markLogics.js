@@ -1,12 +1,11 @@
-// Corrected code for marksAdd controller
-const marks = require('../models/markss');
+const Mark = require('../models/markss');
 
-// for add marks
+// Controller for adding marks
 exports.marksAdd = async (req, res) => {
   const { subject, correctAnswersCount, questions, date, uid } = req.body;
 
   try {
-    const newMark = new marks({
+    const newMark = new Mark({
       subject,
       correctAnswersCount,
       questions,
@@ -15,23 +14,20 @@ exports.marksAdd = async (req, res) => {
     });
 
     await newMark.save();
-    res.status(200).send({ message: "Marks Added" });
+    res.status(200).send({ message: 'Marks Added' });
   } catch (error) {
-    res.status(500).send({ message: "Internal Server Error", error });
+    res.status(500).send({ message: 'Internal Server Error', error });
   }
 };
 
-//get all marks
+// Controller for getting all marks
 exports.getMarksAll = async (req, res) => {
+  const { uid } = req.params;
 
-  const { uid } = req.params
-
-    try {
-        const preuser = await marks.find({uid})
-        res.status(200).json(preuser);
-    } catch (error) {
-        res.status(401).send("Server Error");
-
-    }
-
+  try {
+    const userMarks = await Mark.find({ uid });
+    res.status(200).json(userMarks);
+  } catch (error) {
+    res.status(500).send('Server Error');
+  }
 };

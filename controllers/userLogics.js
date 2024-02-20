@@ -1,171 +1,117 @@
-const jwt =require('jsonwebtoken')
-const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
-users=require('../models/schema')
+const User = require('../models/schema');
 
-
-// for register
+// Controller for user registration
 exports.userRegister = async (req, res) => {
+  const { uname, email, psw } = req.body;
 
+  if (!uname || !email || !psw) {
+    return res.status(400).json({ message: 'All inputs are required' });
+  }
 
-    const { uname, email, psw } = req.body
-
-    if (!uname || !email || !psw) {
-
-        res.status(401).json("all inputs are required")
-
+  try {
+    const preUser = await User.findOne({ email });
+    if (preUser) {
+      return res.status(409).json({ message: 'User already exists' });
     }
-    await bcrypt.hash(psw, 10, async (err, hashedPassword) => {
-        try {
-            const preUser = await users.findOne({ email })
-            if (preUser) {
-              return res.status(409).send({ message: "User already exists" });
-            }
-            else {
-                const newUser = new users({
-                    uname, email, psw: hashedPassword
-                })
 
-                await newUser.save()
+    const hashedPassword = await bcrypt.hash(psw, 10);
+    const newUser = new User({ uname, email, psw: hashedPassword });
+    await newUser.save();
 
-              // Respond with a status code of 201
-              res.status(200)
-              .header('Content-Type', 'application/json').json({
-                message:"Registration Successfull",newUser
-              })
-            }
+    return res.status(201).json({ message: 'Registration successful', newUser });
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal Server Error', error });
+  }
+};
 
+// Controller for user login
+exports.userLogin = async (req, res) => {
+  const { email, psw } = req.body;
 
+  if (!email || !psw) {
+    return res.status(400).json({ message: 'All inputs are required' });
+  }
 
-        } catch (error) {
+  try {
+    const preUser = await User.findOne({ email });
+    if (!preUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-          res.status(500).send({ message: "Internal Server Error", error });
-        }
+    const id = preUser._id;
+    const token = jwt.sign({ email }, 'secretkey123');
+
+    const result = await bcrypt.compare(psw, preUser.psw);
+    if (!result) {
+      return res.status(401).json({ message: 'Incorrect Password' });
+    }
+
+    return res.status(200).json({ message: 'Login successful', token, id });
+  } catch (error) {
+    return res.status(500).json(error);
+  }
+};
+
+// Controller for email verification
+exports.emailVerify = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  try {
+    const preUser = await User.findOne({ email });
+    if (!preUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const uid = preUser._id;
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: process.env.USER, pass: process.env.PASSWORD }
     });
 
-}
+    const mailOptions = {
+      from: 'OnlineTestapp.in <demo@g.com>',
+      to: email,
+      subject: 'Verify your email',
+      text: `${process.env.FRONTEND_URL}/updatepass/${uid}`
+    };
 
-//for login
-
-exports.userLogin = async (req, res) => {
-
-    const { email, psw } = req.body
-    if (!email || !psw) {
-
-        res.status(401).json("all inputs are required")
-
-    }
-
-    try {
-        const preUser = await users.findOne({ email })
-        const id=preUser._id
-
-        if (!preUser) {
-
-            res.send({ message: "User not found" });
-        }
-        else {
-
-            //token generation
-            const token = jwt.sign(email, "secretkey123");
-
-            //comparing passwords
-            bcrypt.compare(psw, preUser.psw, async (err, result) => {
-
-                if (!result) {
-                     res.send({ message: "Incorrect Password" });
-                }
-
-                if (result) {
-
-                    return res.status(200).send({ message: "login Successfull"
-                    , token,id })
-
-                }
-            });
-
-        }
-
-    }
-    catch (error) {
-        res.status(401).json(error)
-
-    }
-}
-
-// for verify email
-exports.Emailverify = async (req, res) => {
-  const { email } = req.body
-
-  if ( !email ) {
-
-      res.status(401).json("all inputs are required")
-
-  }
-  try{
-      const preUser = await users.findOne({email})
-
-      if (!preUser) {
-          return res.send({message:"User not existed"})
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Failed to send email' });
       }
-      const uid=preUser._id
+      return res.status(200).json({ message: 'Check your email for password reset instructions' });
+    });
+  } catch (error) {
+    return res.status(500).json(error);
+  }
+};
 
-        var transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-              user: process.env['USER'],
-              pass: process.env['PASSWORD']
-            }
-          });
-
-          var mailOptions = {
-            from: 'OnlineTestapp.in <demo@g.com>',
-            to: email,
-            subject: 'Verify your email',
-            text: `${process.env['FRONTEND_URL']}/updatepass/${uid}`
-          };
-
-          transporter.sendMail(mailOptions, function(error, info){
-            if (error) {
-              console.log(error);
-            } else {
-            return res.send({message:"Click the link on your mail for reset password"})
-            }
-          });
-
-    }catch (error) {
-        res.status(402).json(error)
-
-    }
-
-}
-
-// for Update password
+// Controller for updating password
 exports.updatePassword = async (req, res) => {
-    const { psw,id } = req.body
-    if ( !psw ) {
+  const { psw, id } = req.body;
 
-        res.status(401).json("all inputs are required")
+  if (!psw || !id) {
+    return res.status(400).json({ message: 'Password and ID are required' });
+  }
 
+  try {
+    const hashedPassword = await bcrypt.hash(psw, 10);
+    const preUser = await User.findOneAndUpdate({ _id: id }, { psw: hashedPassword });
+
+    if (!preUser) {
+      return res.status(404).json({ message: 'User not found' });
     }
-  await bcrypt.hash(psw, 10, async (err, hashedPassword) => {
-    try{
-        const preUser = await users.findOne({ _id:id })
 
-        if (!preUser) {
-            return res.send({message:"User not existed"})
-        }else{
-            preUser.psw=hashedPassword
-            await preUser.save()
-
-        res.status(200).json({message:"Password updated"})
-
-        }
-
-
-    }catch (error) {
-        res.status(500).json(error)
-
-    }
-});
-}
+    return res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    return res.status(500).json(error);
+  }
+};
