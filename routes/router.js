@@ -1,6 +1,6 @@
 const express = require('express');
 const { marksAdd, getMarksAll } = require('../controllers/markLogics');
-const { userRegister, userLogin, emailVerify, updatePassword } = require('../controllers/userLogics');
+const { userRegister, userLogin, emailVerify, updatePassword,deleteUser } = require('../controllers/userLogics');
 const { decodeToken } = require('../middleware/auth');
 
 // Create an instance of the Router class
@@ -23,5 +23,8 @@ router.post('/api/v1/verifymail', emailVerify);
 
 // Route for updating password
 router.post('/api/v1/updatepass', updatePassword);
+
+//route for delete rejected candidate
+router.delete('/api/delete-user/:uid',decodeToken, deleteUser)
 
 module.exports = router;

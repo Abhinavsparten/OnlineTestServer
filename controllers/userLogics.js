@@ -16,7 +16,7 @@ exports.userRegister = async (req, res) => {
     if (preUser) {
       return res.status(409).json({ message: 'User already exists' });
     }
-
+    // Hash the password
     const hashedPassword = await bcrypt.hash(psw, 10);
     const newUser = new User({ uname, email, psw: hashedPassword });
     await newUser.save();
@@ -38,18 +38,20 @@ exports.userLogin = async (req, res) => {
   try {
     const preUser = await User.findOne({ email });
     if (!preUser) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.send({ message: 'User not found' });
     }
 
     const id = preUser._id;
+    const uname = preUser.uname;
+    //token generation
     const token = jwt.sign({ email }, 'secretkey123');
-
+    //comparing password
     const result = await bcrypt.compare(psw, preUser.psw);
     if (!result) {
-      return res.status(401).json({ message: 'Incorrect Password' });
+      return res.send({ message: 'Incorrect Password' });
     }
 
-    return res.status(200).json({ message: 'Login successful', token, id });
+    return res.status(200).json({ message: 'Login successful', token, id,uname });
   } catch (error) {
     return res.status(500).json(error);
   }
@@ -70,6 +72,7 @@ exports.emailVerify = async (req, res) => {
     }
 
     const uid = preUser._id;
+    //triggering email to perticuler mail
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { user: process.env.USER, pass: process.env.PASSWORD }
@@ -103,6 +106,7 @@ exports.updatePassword = async (req, res) => {
   }
 
   try {
+    //hash the password
     const hashedPassword = await bcrypt.hash(psw, 10);
     const preUser = await User.findOneAndUpdate({ _id: id }, { psw: hashedPassword });
 
@@ -113,5 +117,22 @@ exports.updatePassword = async (req, res) => {
     return res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
     return res.status(500).json(error);
+  }
+};
+// Controller for deleting user
+exports.deleteUser = async (req, res) => {
+  const { uid } = req.params;
+  console.log(uid);
+
+  try {
+    const deletedCandidate = await User.findByIdAndDelete({ _id: uid});
+    if (!deletedCandidate) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server Error');
   }
 };
