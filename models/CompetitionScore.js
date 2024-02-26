@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const markSchema = new mongoose.Schema({
+const competitionSchema = new mongoose.Schema({
   subject: {
     type: String,
     required: true,
@@ -29,7 +29,8 @@ const markSchema = new mongoose.Schema({
     type: Number,
     required: true,
   }
+  
 });
-const Mark = mongoose.model('Mark', markSchema);
+const Competition = mongoose.model('Competition', competitionSchema);
 
-module.exports = Mark;
+module.exports = Competition;

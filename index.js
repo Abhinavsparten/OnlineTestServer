@@ -1,6 +1,6 @@
 //import express
 const express=require('express')
-
+const Competition = require('./db/connection');
 const cors=require('cors')
 const router = require('./routes/router')
 
@@ -18,11 +18,7 @@ server.use(express.json())
 server.use(router)
 
 
-
-
 const port=4000 
-
-
 
 
 server.listen(port,()=>{
