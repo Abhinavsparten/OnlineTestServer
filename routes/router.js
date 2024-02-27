@@ -1,5 +1,5 @@
 const express = require('express');
-const { marksAdd, getMarksAll } = require('../controllers/markLogics');
+const { marksAdd, getMarksAll,competitionMarks,getCompetitionMarks } = require('../controllers/markLogics');
 const { userRegister, userLogin, emailVerify, updatePassword,deleteUser } = require('../controllers/userLogics');
 const { decodeToken } = require('../middleware/auth');
 
@@ -17,6 +17,12 @@ router.post('/api/v1/add-marks',decodeToken, marksAdd);
 
 // Route for getting all marks
 router.get('/api/v1/get-marks/:uid',decodeToken, getMarksAll);
+
+// Route for adding marks in competition
+router.post('/api/v1/add-marks-comp',decodeToken, competitionMarks);
+
+// Route for getting all marks in competiotion
+router.post('/api/v1/get-marks-comp',decodeToken, getCompetitionMarks);
 
 // Route for email verification
 router.post('/api/v1/verifymail', emailVerify);
