@@ -22,6 +22,10 @@ const UserSchema = new mongoose.Schema({
   psw: {
     type: String,
     required: true
+  },
+    isPremium: {
+    type: String,
+    required: true
   }
 });
 

@@ -5,9 +5,9 @@ const User = require('../models/schema');
 
 // Controller for user registration
 exports.userRegister = async (req, res) => {
-  const { uname, email, psw } = req.body;
+  const { uname, email, psw,isPremium } = req.body;
 
-  if (!uname || !email || !psw) {
+  if (!uname || !email || !psw || !isPremium) {
     return res.status(400).json({ message: 'All inputs are required' });
   }
 
@@ -18,7 +18,7 @@ exports.userRegister = async (req, res) => {
     }
     // Hash the password
     const hashedPassword = await bcrypt.hash(psw, 10);
-    const newUser = new User({ uname, email, psw: hashedPassword });
+    const newUser = new User({ uname, email, psw: hashedPassword,isPremium });
     await newUser.save();
 
     return res.status(201).json({ message: 'Registration successful', newUser });
@@ -119,11 +119,21 @@ exports.updatePassword = async (req, res) => {
     return res.status(500).json(error);
   }
 };
+
+// Controller for getting current user
+exports.getCurrentUser = async (req, res) => {
+  const { uid } = req.params;
+  try {
+    const userData = await User.findOne({ _id:uid });
+    res.status(200).json(userData);
+  } catch (error) {
+    res.status(500).send('Server Error');
+  }
+};
+
 // Controller for deleting user
 exports.deleteUser = async (req, res) => {
   const { uid } = req.params;
-  console.log(uid);
-
   try {
     const deletedCandidate = await User.findByIdAndDelete({ _id: uid});
     if (!deletedCandidate) {

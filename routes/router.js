@@ -1,7 +1,8 @@
 const express = require('express');
 const { marksAdd, getMarksAll,competitionMarks,getCompetitionMarks } = require('../controllers/markLogics');
-const { userRegister, userLogin, emailVerify, updatePassword,deleteUser } = require('../controllers/userLogics');
+const { userRegister, userLogin, emailVerify, updatePassword,deleteUser,getCurrentUser } = require('../controllers/userLogics');
 const { decodeToken } = require('../middleware/auth');
+const { paymentLogics } = require('../controllers/paymentLogic');
 
 // Create an instance of the Router class
 const router = express.Router();
@@ -11,6 +12,9 @@ router.post('/api/v1/register', userRegister);
 
 // Route for user login
 router.post('/api/v1/login', userLogin);
+
+// Route for getting current user
+router.get('/api/v1/get-user/:uid', getCurrentUser);
 
 // Route for adding marks
 router.post('/api/v1/add-marks',decodeToken, marksAdd);
@@ -23,6 +27,9 @@ router.post('/api/v1/add-marks-comp',decodeToken, competitionMarks);
 
 // Route for getting all marks in competiotion
 router.post('/api/v1/get-marks-comp',decodeToken, getCompetitionMarks);
+
+// Route for payment 
+router.post('/api/v1/add-payment',decodeToken, paymentLogics);
 
 // Route for email verification
 router.post('/api/v1/verifymail', emailVerify);

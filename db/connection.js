@@ -18,7 +18,7 @@ const clearCollection = async () => {
   }
 };
 
-// Schedule the job to run every 24 hours
+// Schedule the job to run every 48 hours
 schedule.scheduleJob('0 0 * * *', () => {
   console.log('Scheduling clearCompetitionCollection job...');
   clearCollection();
