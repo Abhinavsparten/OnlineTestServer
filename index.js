@@ -1,3 +1,6 @@
+//import env file
+require('dotenv').config()
+
 //import express
 const express=require('express')
 const Competition = require('./db/connection');

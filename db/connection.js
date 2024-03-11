@@ -2,7 +2,7 @@ const mongoose=require('mongoose')
 const schedule = require('node-schedule');
 const Competition = require('../models/CompetitionScore');
 
-mongoose.connect(process.env['DATABASE']).then(()=>{
+mongoose.connect(process.env.DATABASE).then(()=>{
     console.log("...Mongodb atlas connected ");
 }).catch((error)=>{
     console.log("connection error"+error);
@@ -18,7 +18,7 @@ const clearCollection = async () => {
   }
 };
 
-// Schedule the job to run every 48 hours
+// Schedule the job to run every 24 hours
 schedule.scheduleJob('0 0 * * *', () => {
   console.log('Scheduling clearCompetitionCollection job...');
   clearCollection();
