@@ -82,7 +82,7 @@ exports.emailVerify = async (req, res) => {
       from: 'OnlineTestapp.in <demo@g.com>',
       to: email,
       subject: 'Verify your email',
-      text: `${process.env.FRONTEND_URL}/updatepass/${uid}`
+      text: `https://questiondesk.netlify.app/updatepass/${uid}`
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
